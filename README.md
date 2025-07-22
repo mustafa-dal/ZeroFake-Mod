@@ -8,7 +8,10 @@ In order to make everything work it is important to change paths to `/blipmodels
 ## How to use it?
 Load your images (or use the imported dataset) and change the variables `output_folder` and `images_path` accordingly (as long as other related paths) and run the python file/notebook, then your images will be reconstructed. 
 
-Run the following command to execute the python file: `python ZeroFake-Mod/inversion_sim.py --start {n of images to start from} --n {integer of how many images to take} --mode {r|f}`
+Run the following command to execute the python file:
+```
+python ZeroFake-Mod/inversion_sim.py --start {n of images to start from} --n {integer of how many images to take} --mode {r|f}
+```
 
 ## Improvements
 - The function `replace_first_noun(…)` was sometimes missing the first noun to take resulting into a poor adversarial prompt. For example I noticed that it was considering *“pope”* as proper noun, so I decided to insert the detection also of proper noun(s) and plural nouns. A successive problem was the detection of compound nouns, so reading the documentation of spaCy I find out the `noun_chunks`, that divide phrases into noun chunks (not in textual order).
