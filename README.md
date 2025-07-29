@@ -8,9 +8,19 @@ In order to make everything work it is important to change paths to `/blipmodels
 ## How to use it?
 Load your images (or use the imported dataset) and change the variables `output_folder` and `images_path` accordingly (as long as other related paths) and run the python file/notebook, then your images will be reconstructed. 
 
+Since the authors didn't disclose their dataset used, in order to evaluate the method I have tried a challenging dataset: [Chameleon dataset](https://github.com/shilinyan99/AIDE). So when executing the following python command line the test will be performed on that dataset. In order to change the dataset you have to modify the part of the code regarding the dataset in the file `inversion_sim.py`.
+
 Run the following command to execute the python file:
 ```
-python ZeroFake-Mod/inversion_sim.py --start {n of images to start from} --n {integer of how many images to take} --mode {r|f}
+# Example: Start from image 10, process 5 images, using real images 
+python ZeroFake-Mod/inversion_sim.py --start 10 --n 5 --mode r
+
+# Example: Start from the first image, process 20 fake images
+python ZeroFake-Mod/inversion_sim.py --start 0 --n 20 --mode f
+
+--start  INT   Index of the first image to process (0-based).
+--n      INT   Number of images to process starting from --start.
+--mode   STR   'r' for real images, 'f' for fake images.
 ```
 
 ## Improvements
