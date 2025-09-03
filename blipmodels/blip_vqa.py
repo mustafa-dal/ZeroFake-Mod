@@ -9,7 +9,8 @@ import numpy as np
 
 class BLIP_VQA(nn.Module):
     def __init__(self,                 
-                 med_config = '/home/mbrigo/ZeroFake-Mod/blipmodels/blipconfig/med_config.json',  
+                 #med_config = '/home/mbrigo/ZeroFake-Mod/blipmodels/blipconfig/med_config.json',  
+                 med_config = os.path.join(os.path.dirname(__file__), "blipconfig", "med_config.json"),
                  image_size = 480,
                  vit = 'base',
                  vit_grad_ckpt = False,

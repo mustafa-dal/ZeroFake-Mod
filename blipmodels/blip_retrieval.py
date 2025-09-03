@@ -1,3 +1,4 @@
+import os
 from models.med import BertConfig, BertModel
 from transformers import BertTokenizer
 
@@ -9,7 +10,8 @@ from models.blip import create_vit, init_tokenizer, load_checkpoint
 
 class BLIP_Retrieval(nn.Module):
     def __init__(self,                 
-                 med_config = '/home/mbrigo/ZeroFake-Mod/blipmodels/blipconfig/med_config.json',
+                 #med_config = '/home/mbrigo/ZeroFake-Mod/blipmodels/blipconfig/med_config.json',
+                 med_config = os.path.join(os.path.dirname(__file__), "blipconfig", "med_config.json"),
                  image_size = 384,
                  vit = 'base',
                  vit_grad_ckpt = False,

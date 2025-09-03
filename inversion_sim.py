@@ -296,23 +296,25 @@ parser.add_argument("--n", type=int, default=20, help="Number of images to extra
 parser.add_argument("--mode",type=str,default='r',help="Select fake (f) or real (r) images")
 args = parser.parse_args()
 
-output_folder = Path("/home/mbrigo/ZeroFake-Mod/reconstructed")
-images_path = Path("/home/mbrigo/ZeroFake-Mod/imgs")
+base_dir = Path(__file__).parent.resolve()
 
-file_id = "1QLYJMhy0CbBVT01BLkkw7KPPL5BpmxnH"
+output_folder = base_dir / "reconstructed"
+images_path = base_dir / "imgs"
+
+file_id = "1PSdLtn9671ohECLb7OO19GqU7pSAyGS5"
 url = f"https://drive.google.com/uc?id={file_id}"
-output = "Chameleon.zip"
+output = "ours.zip"
 
 gdown.download(url, output, quiet=False)
 
-zip_path = "Chameleon.zip"
+zip_path = "ours.zip"
 extract_to = images_path
-final_part_path_images = "Chameleon/test/0_real/"
+final_part_path_images = "ours/test/0_real/"
 n = args.n
 start = args.start
 mode = args.mode
 
-if(mode == 'f'): final_part_path_images = "Chameleon/test/1_fake/"
+if(mode == 'f'): final_part_path_images = "ours/test/1_fake/"
 
 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     # Filter only files in 1_fake or 0_real
@@ -350,7 +352,7 @@ print("Found", len(images_list_str), "images.")
 ### MOST FREQUENT WORDS IN ENGLISH
 
 print("Importing most common words for adversarial prompts...\n")
-word_path = Path("/home/mbrigo/ZeroFake-Mod/words/most-common-nouns-english.csv")
+word_path = base_dir / "words" / "most-common-nouns-english.csv"
 df = pd.read_csv(word_path)
 df.head()
 
