@@ -311,7 +311,8 @@ gdown.download(url, output, quiet=False)
 
 zip_path = "ours.zip"
 extract_to = images_path
-#final_part_path_images = "ours/test/0_real/"
+final_part_path_images = "ours/test/"
+final_part_path_images.mkdir(exist_ok=True)
 n = args.n
 start = args.start
 mode = args.mode
@@ -350,8 +351,8 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     for file in selected_files:
         zip_ref.extract(file, extract_to)
         
-dataset_images_path = images_path / Path(final_part_path_images)
 """
+dataset_images_path = images_path / Path(final_part_path_images)
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
