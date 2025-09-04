@@ -311,8 +311,8 @@ gdown.download(url, output, quiet=False)
 
 zip_path = "ours.zip"
 extract_to = images_path
-final_part_path_images = base_dir / "test"
-final_part_path_images.mkdir(exist_ok=True)
+#final_part_path_images = base_dir / "test"
+#final_part_path_images.mkdir(exist_ok=True)
 n = args.n
 start = args.start
 mode = args.mode
@@ -325,7 +325,7 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     # If your zip has a different way to distinguish real/fake, modify this part
     if mode == 'f':
         # Example: if fake images have "fake" in filename
-        selected_files = [f for f in all_files if "fake" in f.lower()]
+        selected_files = [f for f in all_files if "fake" in f.lower()] #it founds 0 fake images because my images don't have "fake" in the name
     else:
         # Example: if real images have "real" in filename or no specific marker
         selected_files = [f for f in all_files if "real" in f.lower() or ("fake" not in f.lower() and "real" not in f.lower())]
@@ -349,10 +349,10 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     selected_files = real_files[start:start+n]
 
     for file in selected_files:
-        zip_ref.extract(file, extract_to)
-        
+        zip_ref.extract(file, extract_to) 
 """
-dataset_images_path = images_path / Path(final_part_path_images)
+
+dataset_images_path = images_path #/ Path(final_part_path_images)
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
