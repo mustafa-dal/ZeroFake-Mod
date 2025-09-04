@@ -311,7 +311,7 @@ gdown.download(url, output, quiet=False)
 
 zip_path = "ours.zip"
 extract_to = images_path
-final_part_path_images = "ours/test/"
+final_part_path_images = base_dir / "test"
 final_part_path_images.mkdir(exist_ok=True)
 n = args.n
 start = args.start
