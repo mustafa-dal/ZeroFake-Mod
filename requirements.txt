@@ -26,4 +26,3 @@ pandas
 
 # Optional for some schedulers
 accelerate
-fairscale
