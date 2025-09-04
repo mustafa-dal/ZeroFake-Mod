@@ -297,9 +297,11 @@ parser.add_argument("--mode",type=str,default='r',help="Select fake (f) or real 
 args = parser.parse_args()
 
 base_dir = Path(__file__).parent.resolve()
-
 output_folder = base_dir / "reconstructed"
 images_path = base_dir / "imgs"
+
+images_path.mkdir(exist_ok=True)
+output_folder.mkdir(exist_ok=True)
 
 file_id = "1PSdLtn9671ohECLb7OO19GqU7pSAyGS5"
 url = f"https://drive.google.com/uc?id={file_id}"
@@ -309,11 +311,33 @@ gdown.download(url, output, quiet=False)
 
 zip_path = "ours.zip"
 extract_to = images_path
-final_part_path_images = "ours/test/0_real/"
+#final_part_path_images = "ours/test/0_real/"
 n = args.n
 start = args.start
 mode = args.mode
 
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    # Get all files in the zip (excluding directories)
+    all_files = [f for f in zip_ref.namelist() if not f.endswith("/")]
+    
+    # Filter files based on mode if needed, or use all files
+    # If your zip has a different way to distinguish real/fake, modify this part
+    if mode == 'f':
+        # Example: if fake images have "fake" in filename
+        selected_files = [f for f in all_files if "fake" in f.lower()]
+    else:
+        # Example: if real images have "real" in filename or no specific marker
+        selected_files = [f for f in all_files if "real" in f.lower() or ("fake" not in f.lower() and "real" not in f.lower())]
+    
+    # Select the requested range of files
+    selected_files = selected_files[start:start+n]
+    
+    # Extract selected files
+    for file in selected_files:
+        zip_ref.extract(file, extract_to)
+
+
+"""
 if(mode == 'f'): final_part_path_images = "ours/test/1_fake/"
 
 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
@@ -326,9 +350,8 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     for file in selected_files:
         zip_ref.extract(file, extract_to)
         
-#dataset_images_path = images_path / "Chameleon" / "test" / "0_real"
 dataset_images_path = images_path / Path(final_part_path_images)
-#real_images = natsorted(dataset_images_path.glob("*.*"))[:20] # to try putting selected_files here instead of [:20] here
+"""
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
