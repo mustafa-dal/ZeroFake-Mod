@@ -352,7 +352,7 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extract(file, extract_to) 
 """
 
-dataset_images_path = images_path #/ Path(final_part_path_images)
+dataset_images_path = images_path / "ours"
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
