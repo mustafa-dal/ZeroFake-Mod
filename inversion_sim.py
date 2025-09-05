@@ -525,6 +525,9 @@ output_file = "testfake.txt"
 mean_ssim_score = []
 mean_feature_distance_score = []
 
+original_images = []
+reconstructed_images = []
+
 with open(output_file, "w") as f:
     f.write("Image Filename\tPixel Similarity\n")
     index = 0
@@ -561,16 +564,16 @@ with open(output_file, "w") as f:
         f.write(f"SSIM score of {index}: \t{ssim_score}\n")
         print("SSIM score:", ssim_score,"\n")
         
-        image1.append(image1_tensor) #new added
-        image2.append(image2_tensor) #new added
+        original_images.append(image1_orig) #new added
+        reconstructed_images.append(image2_orig) #new added
         
         index+=1
         
-    image1 = torch.cat(image1, dim=0) #new added
-    image2 = torch.cat(image2, dim=0) #new added
+    original_images = torch.cat(image1, dim=0) #new added
+    reconstructed_images = torch.cat(image2, dim=0) #new added
     
-    fid.update(image1, is_real=True)
-    fid.update(image2, is_real=False)
+    fid.update(original_images, is_real=True)
+    fid.update(reconstructed_images, is_real=False)
     fid_score = fid.compute()
     
     f.write(f"FID score \t{fid_score.item()}\n")
