@@ -530,8 +530,8 @@ with open(output_file, "w") as f:
     index = 0
     for image_path1, image_path2 in zip(natsorted(Path(folder1_path).glob("*?.*")), natsorted(Path(folder2_path).glob("*?.*"))):
 
-        print(image_path1)
-        print(image_path2)
+        print("Comparing:", image_path1, "<->", image_path2)
+        
         image1_orig = cv2.imread(str(image_path1))
         image2_orig = cv2.imread(str(image_path2))
 
@@ -553,17 +553,26 @@ with open(output_file, "w") as f:
 
         image1_tensor = FID_preprocess(image1_orig)
         image2_tensor = FID_preprocess(image2_orig)
-        fid.update(image1_tensor, is_real=True)
-        fid.update(image2_tensor, is_real=False)
+        #fid.update(image1_tensor, is_real=True)
+        #fid.update(image2_tensor, is_real=False)
 
-        ssim_score = ssim(gray1, gray2)
-
+        ssim_score = ssim(gray1, gray2, data_range=gray1.max() - gray1.min())#new added
+        mean_ssim_score.append(ssim_score)
         f.write(f"SSIM score of {index}: \t{ssim_score}\n")
         print("SSIM score:", ssim_score,"\n")
+        
+        image1.append(image1_tensor) #new added
+        image2.append(image2_tensor) #new added
+        
         index+=1
-        mean_ssim_score.append(ssim_score)
-
+        
+    image1 = torch.cat(image1, dim=0) #new added
+    image2 = torch.cat(image2, dim=0) #new added
+    
+    fid.update(image1, is_real=True)
+    fid.update(image2, is_real=False)
     fid_score = fid.compute()
+    
     f.write(f"FID score \t{fid_score.item()}\n")
     print("FID score \t", fid_score.item(),"\n")
     f.write(f"Mean feature distance \t{np.mean(mean_feature_distance_score)}\n")
