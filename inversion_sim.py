@@ -569,8 +569,8 @@ with open(output_file, "w") as f:
         
         index+=1
         
-    original_images = torch.cat(image1, dim=0) #new added
-    reconstructed_images = torch.cat(image2, dim=0) #new added
+    original_images = torch.cat(original_images, dim=0) #new added
+    reconstructed_images = torch.cat(reconstructed_images, dim=0) #new added
     
     fid.update(original_images, is_real=True)
     fid.update(reconstructed_images, is_real=False)
