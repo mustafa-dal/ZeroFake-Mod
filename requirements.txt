@@ -5,7 +5,7 @@ torcheval
 
 # Diffusers and transformers
 diffusers[torch]>=0.25.0
-transformers
+transformers==4.28
 sentence-transformers
 scipy
 
