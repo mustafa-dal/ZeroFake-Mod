@@ -564,8 +564,8 @@ with open(output_file, "w") as f:
         f.write(f"SSIM score of {index}: \t{ssim_score}\n")
         print("SSIM score:", ssim_score,"\n")
         
-        original_images.append(image1_orig) #new added
-        reconstructed_images.append(image2_orig) #new added
+        original_images.append(image1_tensor) #new added
+        reconstructed_images.append(image2_tensor) #new added
         
         index+=1
         
