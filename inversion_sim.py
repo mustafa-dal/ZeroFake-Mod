@@ -385,40 +385,33 @@ print("Starting DDIM inversion + reconstruction processes...\n")
 for impath in images_list_str:
 
     img = load_img(impath).unsqueeze(0).to("cuda")
-    print(index)
+    print(f"image index: {index}")
 
     prompt = blipmodel.generate(img, sample=True, num_beams=3, max_length=40, min_length=5)[0]
-
     print(prompt)
 
     candidate_prompts = get_perturbed_prompts(prompt)
 
-    #original_prompt = sentence_embedding(prompt) # to be changed with sentence_transformer.encode(prompt)
     original_prompt = sentence_transformer.encode(prompt)
     min_sim = 1.0
     selected = None
     for adv in candidate_prompts:
-        #adv_prompt_word_vector = sentence_embedding(adv) # to be changed with sentence_transformer.encode(adv)
         adv_prompt_word_vector = sentence_transformer.encode(adv)
         #res = cosine_similarity(adv_prompt_word_vector,original_prompt) # to be changed with sentence_transformer.similarities(adv_prompt_word_vector,original_prompt)
         res = util.cos_sim(adv_prompt_word_vector,original_prompt)
         if res < min_sim:
             min_sim = res
             selected = adv
-        #print(f"Candidate prompt: {adv} with cosine similarity score {res}")
+        print(f"Candidate prompt: {adv} with cosine similarity score {res}")
     
     if selected is None: selected = 'An image'
 
     prompt = selected
 
-    #prompt = replace_first_noun(prompt, target_word)
-
     print(prompt)
 
     text_embeddings = pipe.get_text_embedding(prompt)
-
     rng_generator=torch.Generator(device=pipe.device).manual_seed(0)
-
     image_latents = pipe.get_image_latents(img, rng_generator)
 
     reversed_latents = pipe.forward_diffusion(
@@ -434,8 +427,6 @@ for impath in images_list_str:
         guidance_scale=1,
         num_inference_steps=20,
     )
-
-    # guidance_scale=1 so we follow the prompt only
 
     def latents_to_imgs(latents):
         x = pipe.decode_image(latents)
