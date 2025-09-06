@@ -1,20 +1,23 @@
 print("Importing required libraries...\n")
-
+import os
+import sys
+import argparse
+import numpy as np
+import pandas as pd
+import spacy
+import cv2
+import zipfile
+import random
+import gdown
+from PIL import Image
 from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple, Union
-
-import numpy as np
-import PIL
 import torch
 import torch.nn.functional as nnf
-
 from diffusers import DDIMScheduler, StableDiffusionPipeline
-from PIL import Image
 from torchvision import transforms
-
 import inspect
-
 import torch
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
 
@@ -31,21 +34,14 @@ from diffusers.schedulers import DDIMScheduler,PNDMScheduler, LMSDiscreteSchedul
 from diffusers.utils import deprecate, logging, numpy_to_pil
 from natsort import natsorted
 
-from PIL import Image
 import requests
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 from blipmodels import blip_decoder
-import spacy
 
-import cv2
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as PSNR
 from skimage.metrics import mean_squared_error as MSE
-
-import os
-import sys
-import argparse
 
 import nltk
 from nltk.corpus import brown
@@ -53,20 +49,12 @@ from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 from nltk import download
 
-import zipfile
-import random
-import gdown
-
-import pandas as pd
-
-import nltk
 nltk.download('punkt_tab')
 from nltk.corpus import wordnet as wn
 download('wordnet')
 download('omw-1.4')
 
 from sentence_transformers import SentenceTransformer, util
-
 from torchvision.models.inception import inception_v3
 from scipy.linalg import sqrtm
 import torch.nn as nn
@@ -337,21 +325,6 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     for file in selected_files:
         zip_ref.extract(file, extract_to)
 
-
-"""
-if(mode == 'f'): final_part_path_images = "ours/test/1_fake/"
-
-with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-    # Filter only files in 1_fake or 0_real
-    real_files = [f for f in zip_ref.namelist() if final_part_path_images in f and not f.endswith("/")]
-
-    #selected_files = random.sample(real_files, n)
-    selected_files = real_files[start:start+n]
-
-    for file in selected_files:
-        zip_ref.extract(file, extract_to) 
-"""
-
 dataset_images_path = images_path / "ours"
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
@@ -523,7 +496,6 @@ folder2_path = output_folder
 output_file = "testfake.txt"
 
 mean_ssim_score = []
-mean_feature_distance_score = []
 
 original_images = []
 reconstructed_images = []
@@ -544,33 +516,23 @@ with open(output_file, "w") as f:
         gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
         gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
 
-        # frechet_score = frechet_distance_score(gray1,gray2)
-        # print(f"Fréchet score: {frechet_score}")
-
-        features1 = extract_features(image1_orig)
-        features2 = extract_features(image2_orig)
-        feature_dist = feature_distance(features1,features2)
-        mean_feature_distance_score.append(feature_dist)
-        print("Feature distance score:", feature_dist,"\n")
-        f.write(f"Feature distance score of {index}: \t{feature_dist}\n")
-
         image1_tensor = FID_preprocess(image1_orig)
         image2_tensor = FID_preprocess(image2_orig)
         #fid.update(image1_tensor, is_real=True)
         #fid.update(image2_tensor, is_real=False)
 
-        ssim_score = ssim(gray1, gray2, data_range=gray1.max() - gray1.min())#new added
+        ssim_score = ssim(gray1, gray2, data_range=gray1.max() - gray1.min())
         mean_ssim_score.append(ssim_score)
         f.write(f"SSIM score of {index}: \t{ssim_score}\n")
         print("SSIM score:", ssim_score,"\n")
         
-        original_images.append(image1_tensor) #new added
-        reconstructed_images.append(image2_tensor) #new added
+        original_images.append(image1_tensor) 
+        reconstructed_images.append(image2_tensor)
         
         index+=1
-        
-    original_images = torch.cat(original_images, dim=0) #new added
-    reconstructed_images = torch.cat(reconstructed_images, dim=0) #new added
+
+    original_images = torch.cat(original_images, dim=0)
+    reconstructed_images = torch.cat(reconstructed_images, dim=0)
     
     fid.update(original_images, is_real=True)
     fid.update(reconstructed_images, is_real=False)
@@ -578,8 +540,6 @@ with open(output_file, "w") as f:
     
     f.write(f"FID score \t{fid_score.item()}\n")
     print("FID score \t", fid_score.item(),"\n")
-    f.write(f"Mean feature distance \t{np.mean(mean_feature_distance_score)}\n")
-    print(f"Mean feature distance \t{np.mean(mean_feature_distance_score)}\n")
     f.write(f"Mean SSIM score \t{np.mean(mean_ssim_score)}\n")
     print(f"Mean SSIM score \t{np.mean(mean_ssim_score)}\n")
 
