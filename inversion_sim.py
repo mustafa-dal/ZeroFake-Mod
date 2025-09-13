@@ -314,7 +314,7 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     for file in selected_files:
         zip_ref.extract(file, extract_to)
 
-dataset_images_path = images_path / "dataset"
+dataset_images_path = images_path / "dataset" / "compressed" if mode == 'c' else images_path / "dataset" / "real"
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
@@ -439,7 +439,7 @@ folder2_path = output_folder
 output_file = "results.csv"
 
 results = []
-"""
+
 index = 0
 
 for image_path1, image_path2 in zip(
@@ -481,8 +481,8 @@ else:
 
 df_results.to_csv(output_file, index=False)
 print(f"Results saved to {output_file}")
-"""
 
+"""
 mean_ssim_score = []
 with open(output_file, "w") as f:
     f.write("Image Filename\tPixel Similarity\n")
@@ -511,3 +511,4 @@ with open(output_file, "w") as f:
     print(f"Mean SSIM score \t{np.mean(mean_ssim_score)}\n")
 
 print("Results saved to", output_file)
+"""
