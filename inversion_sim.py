@@ -457,7 +457,7 @@ for image_path1, image_path2 in zip(
     gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
 
     ssim_score = ssim(gray1, gray2, data_range=gray1.max() - gray1.min())
-
+    print(f"SSIM score of {index}: \t{ssim_score}")
     results.append({
         "Index": index,
         "Original_Image": str(image_path1),
