@@ -478,7 +478,8 @@ if not df_results.empty and "SSIM" in df_results.columns:
     df_results.loc[len(df_results)] = ["-", "-", "-", mean_ssim]
 else:
     print(" No SSIM scores found. Check if images exist in both folders.")
-
+    print("Folder 1 path:", folder1_path)
+    print("Folder 2 path:", folder2_path)
 df_results.to_csv(output_file, index=False)
 print(f"Results saved to {output_file}")
 
