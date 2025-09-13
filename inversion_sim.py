@@ -469,10 +469,18 @@ for image_path1, image_path2 in zip(
     index += 1
 
 df_results = pd.DataFrame(results)
-df_results["Mean_SSIM"] = df_results["SSIM"].mean()
-df_results.to_csv(output_file, index=False)
 
+
+if not df_results.empty and "SSIM" in df_results.columns:
+    mean_ssim = df_results["SSIM"].mean()
+    # Add a new row for clarity instead of repeating value in every row
+    df_results.loc[len(df_results)] = ["-", "-", "-", mean_ssim]
+else:
+    print(" No SSIM scores found. Check if images exist in both folders.")
+
+df_results.to_csv(output_file, index=False)
 print(f"Results saved to {output_file}")
+
 
 """
 with open(output_file, "w") as f:
