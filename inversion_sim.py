@@ -390,7 +390,7 @@ for impath in images_list_str:
         if res < min_sim:
             min_sim = res
             selected = adv
-        print(f"Candidate prompt: {adv} with cosine similarity score {res}")
+        #print(f"Candidate prompt: {adv} with cosine similarity score {res}")
     
     if selected is None: selected = 'An image'
 
