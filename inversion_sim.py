@@ -314,7 +314,7 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
     for file in selected_files:
         zip_ref.extract(file, extract_to)
 
-dataset_images_path = images_path / "dataset" / "compressed" if mode == 'c' else images_path / "dataset" / "real"
+dataset_images_path = images_path / "compressed" if mode == 'c' else images_path / "real"
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
@@ -480,6 +480,7 @@ else:
     print(" No SSIM scores found. Check if images exist in both folders.")
     print("Folder 1 path:", folder1_path)
     print("Folder 2 path:", folder2_path)
+    
 df_results.to_csv(output_file, index=False)
 print(f"Results saved to {output_file}")
 
