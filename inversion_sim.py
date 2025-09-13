@@ -122,8 +122,6 @@ class StableDiffusionPipeline(DiffusionPipeline):
         tokenizer: CLIPTokenizer,
         unet: UNet2DConditionModel,
         scheduler: Union[DDIMScheduler, PNDMScheduler, LMSDiscreteScheduler],
-        #safety_checker: StableDiffusionSafetyChecker = None,
-        #feature_extractor: CLIPFeatureExtractor = None
     ):
         super().__init__()
 
@@ -266,7 +264,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         return image
 
     @torch.inference_mode()
-    def torch_to_numpy(self, image) -> List[Image.Image]: # this function was missing and giving error
+    def torch_to_numpy(self, image) -> List[Image.Image]:
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
         return image
@@ -281,7 +279,7 @@ print("Dataset download started...\n")
 parser = argparse.ArgumentParser(description="Extract n images from the dataset starting from a given index.")
 parser.add_argument("--start", type=int, default=0, help="Start index for image selection.")
 parser.add_argument("--n", type=int, default=20, help="Number of images to extract.")
-parser.add_argument("--mode",type=str,default='r',help="Select fake (f) or real (r) images")
+parser.add_argument("--mode",type=str,default='r',help="Select compressed (c) or real (r) images")
 args = parser.parse_args()
 
 base_dir = Path(__file__).parent.resolve()
@@ -291,41 +289,32 @@ images_path = base_dir / "imgs"
 images_path.mkdir(exist_ok=True)
 output_folder.mkdir(exist_ok=True)
 
-file_id = "1PSdLtn9671ohECLb7OO19GqU7pSAyGS5"
+file_id = "15ZbrxBeIR_hIY3rfMLhhGUD5C4VBl_EA"
 url = f"https://drive.google.com/uc?id={file_id}"
-output = "ours.zip"
+output = "dataset.zip"
 
 gdown.download(url, output, quiet=False)
 
-zip_path = "ours.zip"
+zip_path = "dataset.zip"
 extract_to = images_path
-#final_part_path_images = base_dir / "test"
-#final_part_path_images.mkdir(exist_ok=True)
 n = args.n
 start = args.start
 mode = args.mode
 
 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-    # Get all files in the zip (excluding directories)
     all_files = [f for f in zip_ref.namelist() if not f.endswith("/")]
     
-    # Filter files based on mode if needed, or use all files
-    # If your zip has a different way to distinguish real/fake, modify this part
-    if mode == 'f':
-        # Example: if fake images have "fake" in filename
-        selected_files = [f for f in all_files if "fake" in f.lower()] #it founds 0 fake images because my images don't have "fake" in the name
+    if mode == 'c':
+        selected_files = [f for f in all_files if "decoded" in f.lower()] 
     else:
-        # Example: if real images have "real" in filename or no specific marker
-        selected_files = [f for f in all_files if "real" in f.lower() or ("fake" not in f.lower() and "real" not in f.lower())]
+        selected_files = [f for f in all_files if "real" in f.lower() or ("decoded" not in f.lower() and "real" not in f.lower())]
     
-    # Select the requested range of files
     selected_files = selected_files[start:start+n]
-    
-    # Extract selected files
+
     for file in selected_files:
         zip_ref.extract(file, extract_to)
 
-dataset_images_path = images_path / "ours"
+dataset_images_path = images_path / "dataset"
 real_images = natsorted([images_path / Path(f) for f in selected_files])
 images_list_str= [str(x) for x in real_images]
 
@@ -338,7 +327,7 @@ nlp = spacy.load("en_core_web_sm")
 model_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth'
 image_size = 512
 print("Loading BLIP model...\n")
-blipmodel = blip_decoder(pretrained=model_url, image_size=image_size, vit='base') # Error solved when using generate with this, that can be found in blip.py and med.py
+blipmodel = blip_decoder(pretrained=model_url, image_size=image_size, vit='base')
 print("BLIP model loaded.\n")
 blipmodel.eval()
 blipmodel = blipmodel.cuda()
@@ -397,7 +386,6 @@ for impath in images_list_str:
     selected = None
     for adv in candidate_prompts:
         adv_prompt_word_vector = sentence_transformer.encode(adv)
-        #res = cosine_similarity(adv_prompt_word_vector,original_prompt) # to be changed with sentence_transformer.similarities(adv_prompt_word_vector,original_prompt)
         res = util.cos_sim(adv_prompt_word_vector,original_prompt)
         if res < min_sim:
             min_sim = res
@@ -440,57 +428,53 @@ for impath in images_list_str:
     image.save(os.path.join(output_folder, str(index) + '.png'), format="PNG")
     index += 1
     
-### FRECHET INCEPTION DISTANCE
 
-print("Loading FID distance...\n")
-inception_model = inception_v3(pretrained=True, transform_input=False).eval()
-inception_model.fc = nn.Identity()
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-inception_model.to(device)
-
-def FID_preprocess(img):
-    img = cv2.resize(img, (299, 299))
-    img_tensor = torch.from_numpy(img).float()
-    img_tensor = img_tensor / 255.0
-    img_tensor = img_tensor.permute(2, 0, 1)
-    img_tensor = img_tensor.unsqueeze(0).to(device)
-
-    return img_tensor
-
-def extract_features(img):
-    img_tensor = FID_preprocess(img)
-
-    # FID implemenetation of torcheval already normalize
-    mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1).to(img_tensor.device)
-    std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1).to(img_tensor.device)
-    img_tensor = (img_tensor - mean) / std
-
-    with torch.no_grad():
-        features = inception_model(img_tensor)
-
-    return features.squeeze().cpu().numpy()
-
-def feature_distance(feat1, feat2):
-    return np.sum((feat1 - feat2)**2)
-
-fid = FrechetInceptionDistance().to(device)
 
 ### COMPARISON CYCLE
 
 print("Trying to initiate comparison cycle...\n")
 
 folder1_path = dataset_images_path
-
 folder2_path = output_folder
+output_file = "results.csv"
 
-output_file = "testfake.txt"
+results = []
 
-mean_ssim_score = []
+index = 0
+for image_path1, image_path2 in zip(
+    natsorted(Path(folder1_path).glob("*?.*")),
+    natsorted(Path(folder2_path).glob("*?.*"))
+):
+    print("Comparing:", image_path1, "<->", image_path2)
+    
+    image1_orig = cv2.imread(str(image_path1))
+    image2_orig = cv2.imread(str(image_path2))
 
-original_images = []
-reconstructed_images = []
+    image1 = cv2.resize(image1_orig, (512, 512))
+    image2 = cv2.resize(image2_orig, (512, 512))
 
+    gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+
+    ssim_score = ssim(gray1, gray2, data_range=gray1.max() - gray1.min())
+
+    results.append({
+        "Index": index,
+        "Original_Image": str(image_path1),
+        "Reconstructed_Image": str(image_path2),
+        "SSIM": ssim_score
+    })
+
+    print("SSIM score:", ssim_score, "\n")
+    index += 1
+
+df_results = pd.DataFrame(results)
+df_results["Mean_SSIM"] = df_results["SSIM"].mean()
+df_results.to_csv(output_file, index=False)
+
+print(f"Results saved to {output_file}")
+
+"""
 with open(output_file, "w") as f:
     f.write("Image Filename\tPixel Similarity\n")
     index = 0
@@ -507,31 +491,15 @@ with open(output_file, "w") as f:
         gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
         gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
 
-        image1_tensor = FID_preprocess(image1_orig)
-        image2_tensor = FID_preprocess(image2_orig)
-        #fid.update(image1_tensor, is_real=True)
-        #fid.update(image2_tensor, is_real=False)
-
         ssim_score = ssim(gray1, gray2, data_range=gray1.max() - gray1.min())
         mean_ssim_score.append(ssim_score)
         f.write(f"SSIM score of {index}: \t{ssim_score}\n")
         print("SSIM score:", ssim_score,"\n")
-        
-        original_images.append(image1_tensor) 
-        reconstructed_images.append(image2_tensor)
-        
+     
         index+=1
 
-    original_images = torch.cat(original_images, dim=0)
-    reconstructed_images = torch.cat(reconstructed_images, dim=0)
-    
-    fid.update(original_images, is_real=True)
-    fid.update(reconstructed_images, is_real=False)
-    fid_score = fid.compute()
-    
-    f.write(f"FID score \t{fid_score.item()}\n")
-    print("FID score \t", fid_score.item(),"\n")
     f.write(f"Mean SSIM score \t{np.mean(mean_ssim_score)}\n")
     print(f"Mean SSIM score \t{np.mean(mean_ssim_score)}\n")
 
 print("Results saved to", output_file)
+"""
