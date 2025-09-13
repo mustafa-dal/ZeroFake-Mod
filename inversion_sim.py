@@ -439,8 +439,9 @@ folder2_path = output_folder
 output_file = "results.csv"
 
 results = []
-
+"""
 index = 0
+
 for image_path1, image_path2 in zip(
     natsorted(Path(folder1_path).glob("*?.*")),
     natsorted(Path(folder2_path).glob("*?.*"))
@@ -480,9 +481,9 @@ else:
 
 df_results.to_csv(output_file, index=False)
 print(f"Results saved to {output_file}")
-
-
 """
+
+mean_ssim_score = []
 with open(output_file, "w") as f:
     f.write("Image Filename\tPixel Similarity\n")
     index = 0
@@ -510,4 +511,3 @@ with open(output_file, "w") as f:
     print(f"Mean SSIM score \t{np.mean(mean_ssim_score)}\n")
 
 print("Results saved to", output_file)
-"""
